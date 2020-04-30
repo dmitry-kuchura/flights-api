@@ -1,0 +1,26 @@
+version: '3.1'
+
+services:
+  mongo:
+    container_name: flights_mongo
+    image: mongo:latest
+    environment:
+      MONGODB_USER: "${MONGO_USER}"
+      MONGODB_DATABASE: "${DATABASE}"
+      MONGODB_PASS: "${MONGO_PASSWORD}"
+      MONGODB_DATA_DIR: /data/db
+      MONDODB_LOG_DIR: /dev/null
+    user: ${UID}:${GID}
+    ports:
+      - 27017:27017
+    volumes:
+      - .docker/mongo:/data/db
+
+  mongo-express:
+    container_name: flights_mongo-express
+    image: mongo-express
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: secret

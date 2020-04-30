@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"log"
 
+	m "flights-api/models"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func UpdateOne(collection *mongo.Collection, value string, data Flight) {
+func UpdateOne(collection *mongo.Collection, value string, data m.Flight) {
 	filter := bson.D{{"number", value}}
 
 	update := bson.D{
@@ -27,7 +29,7 @@ func UpdateOne(collection *mongo.Collection, value string, data Flight) {
 	fmt.Printf("Matched %v documents and updated %v documents.\n", updateResult.MatchedCount, updateResult.ModifiedCount)
 }
 
-func InsertMany(collection *mongo.Collection, list Flight) {
+func InsertMany(collection *mongo.Collection, list m.Flight) {
 	flights := []interface{}{list}
 
 	insertManyResult, err := collection.InsertMany(context.TODO(), flights)
@@ -38,7 +40,7 @@ func InsertMany(collection *mongo.Collection, list Flight) {
 	fmt.Println("Inserted multiple documents: ", insertManyResult.InsertedIDs)
 }
 
-func InsertOne(collection *mongo.Collection, flight Flight) {
+func InsertOne(collection *mongo.Collection, flight m.Flight) {
 	insertResult, err := collection.InsertOne(context.TODO(), flight)
 	if err != nil {
 		log.Fatal(err)
@@ -47,7 +49,7 @@ func InsertOne(collection *mongo.Collection, flight Flight) {
 	fmt.Println("Inserted a single document: ", insertResult.InsertedID)
 }
 
-func FindOne(collection *mongo.Collection, value string) (flight Flight, err error) {
+func FindOne(collection *mongo.Collection, value string) (flight m.Flight, err error) {
 	filter := bson.D{{"number", value}}
 
 	err = collection.FindOne(context.TODO(), filter).Decode(&flight)
@@ -55,7 +57,7 @@ func FindOne(collection *mongo.Collection, value string) (flight Flight, err err
 	return flight, err
 }
 
-func FindMany(collection *mongo.Collection, value string) ([]*Flight, error) {
+func FindMany(collection *mongo.Collection, value string) ([]*m.Flight, error) {
 	if value == "" {
 		return FindAll(collection)
 	}
@@ -73,13 +75,17 @@ func FindMany(collection *mongo.Collection, value string) ([]*Flight, error) {
 		}
 	}
 
-	var results []*Flight
+	var results []*m.Flight
 
 	cur, err := collection.Find(context.Background(), bson.M{"$or": filter})
 
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	for cur.Next(context.TODO()) {
 		// create a value into which the single document can be decoded
-		var elem Flight
+		var elem m.Flight
 		err := cur.Decode(&elem)
 		if err != nil {
 			log.Fatal(err)
@@ -98,7 +104,7 @@ func FindMany(collection *mongo.Collection, value string) ([]*Flight, error) {
 	return results, err
 }
 
-func FindDeparted(collection *mongo.Collection, value string) ([]*Flight, error) {
+func FindDeparted(collection *mongo.Collection, value string) ([]*m.Flight, error) {
 	if value == "" {
 		return FindAll(collection)
 	}
@@ -115,13 +121,13 @@ func FindDeparted(collection *mongo.Collection, value string) ([]*Flight, error)
 		}
 	}
 
-	var results []*Flight
+	var results []*m.Flight
 
 	cur, err := collection.Find(context.Background(), bson.M{"$or": filter})
 
 	for cur.Next(context.TODO()) {
 		// create a value into which the single document can be decoded
-		var elem Flight
+		var elem m.Flight
 		err := cur.Decode(&elem)
 		if err != nil {
 			log.Fatal(err)
@@ -140,7 +146,7 @@ func FindDeparted(collection *mongo.Collection, value string) ([]*Flight, error)
 	return results, err
 }
 
-func FindArriving(collection *mongo.Collection, value string) ([]*Flight, error) {
+func FindArriving(collection *mongo.Collection, value string) ([]*m.Flight, error) {
 	if value == "" {
 		return FindAll(collection)
 	}
@@ -156,13 +162,13 @@ func FindArriving(collection *mongo.Collection, value string) ([]*Flight, error)
 		}
 	}
 
-	var results []*Flight
+	var results []*m.Flight
 
 	cur, err := collection.Find(context.Background(), bson.M{"$and": filter})
 
 	for cur.Next(context.TODO()) {
 		// create a value into which the single document can be decoded
-		var elem Flight
+		var elem m.Flight
 		err := cur.Decode(&elem)
 		if err != nil {
 			log.Fatal(err)
@@ -181,19 +187,19 @@ func FindArriving(collection *mongo.Collection, value string) ([]*Flight, error)
 	return results, err
 }
 
-func FindAll(collection *mongo.Collection) ([]*Flight, error) {
+func FindAll(collection *mongo.Collection) ([]*m.Flight, error) {
 	params := options.Find()
 	params.SetLimit(100)
 
 	filter := bson.M{}
 
-	var results []*Flight
+	var results []*m.Flight
 
 	cur, err := collection.Find(context.Background(), filter, params)
 
 	for cur.Next(context.TODO()) {
 		// create a value into which the single document can be decoded
-		var elem Flight
+		var elem m.Flight
 		err := cur.Decode(&elem)
 		if err != nil {
 			log.Fatal(err)
